@@ -138,26 +138,6 @@ func main() {
 	url := flag.Args()[0]
 	method := strings.ToUpper(*m)
 
-	// set content-type
-	header := make(http.Header)
-	header.Set("Content-Type", *contentType)
-	// set any other additional headers
-	if *headers != "" {
-		usageAndExit("Flag '-h' is deprecated, please use '-H' instead.")
-	}
-	// set any other additional repeatable headers
-	for _, h := range hs {
-		match, err := parseInputWithRegexp(h, headerRegexp)
-		if err != nil {
-			usageAndExit(err.Error())
-		}
-		header.Set(match[1], match[2])
-	}
-
-	if *accept != "" {
-		header.Set("Accept", *accept)
-	}
-
 	// set basic auth if set
 	var username, password string
 	if *authHeader != "" {
@@ -198,6 +178,26 @@ func main() {
 		req.SetBasicAuth(username, password)
 	}
 
+	// set content-type
+	header := req.Header
+	header.Set("Content-Type", *contentType)
+	// set any other additional headers
+	if *headers != "" {
+		usageAndExit("Flag '-h' is deprecated, please use '-H' instead.")
+	}
+	// set any other additional repeatable headers
+	for _, h := range hs {
+		match, err := parseInputWithRegexp(h, headerRegexp)
+		if err != nil {
+			usageAndExit(err.Error())
+		}
+		header.Set(match[1], match[2])
+	}
+
+	if *accept != "" {
+		header.Set("Accept", *accept)
+	}
+
 	// set host header if set
 	if *hostHeader != "" {
 		req.Host = *hostHeader
@@ -210,7 +210,6 @@ func main() {
 		ua += " " + heyUA
 	}
 	header.Set("User-Agent", ua)
-	req.Header = header
 
 	w := &requester.Work{
 		Request:            req,
